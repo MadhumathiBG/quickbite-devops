@@ -54,21 +54,26 @@ pipeline {
         }
 
         stage('Deploy to App Server') {
-            steps {
-                sshagent(['app-server-ssh']) {
-                    sh '''
-                        ssh -o StrictHostKeyChecking=no ubuntu@10.0.1.9 "
-                            mkdir -p ~/quickbite-devops
-                            if [ ! -d ~/quickbite-devops/.git ]; then
-                                git clone https://github.com/MadhumathiBG/quickbite-devops.git ~/quickbite-devops
-                            else
-                                cd ~/quickbite-devops && git pull origin main
-                            fi
-                        "
-                    '''
-                }
-            }
+    steps {
+        sshagent(['app-server-ssh']) {
+            sh '''
+                ssh -o StrictHostKeyChecking=no ubuntu@10.0.1.9 "
+                    if [ ! -d ~/quickbite-devops/.git ]; then
+                        git clone https://github.com/MadhumathiBG/quickbite-devops.git ~/quickbite-devops
+                    else
+                        cd ~/quickbite-devops && git pull --ff-only origin main
+                    fi
+
+                    cd ~/quickbite-devops
+
+                    IMAGE_TAG=${BUILD_NUMBER} docker compose pull frontend
+                    IMAGE_TAG=${BUILD_NUMBER} docker compose up -d
+                "
+            '''
         }
+    }
+}
+           
     }
 
     post {
