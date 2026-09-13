@@ -1,7 +1,3 @@
-# ---------------------------------------------------------
-# DevOps Control Node Security Group
-# ---------------------------------------------------------
-
 resource "aws_security_group" "devops_sg" {
   name        = "QuickBite-DevOps-SG"
   description = "Security group for DevOps Control Node"
@@ -11,6 +7,14 @@ resource "aws_security_group" "devops_sg" {
     description = "SSH access"
     from_port   = 22
     to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "Jenkins web interface"
+    from_port   = 8080
+    to_port     = 8080
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -28,9 +32,6 @@ resource "aws_security_group" "devops_sg" {
   }
 }
 
-# ---------------------------------------------------------
-# Application Server Security Group
-# ---------------------------------------------------------
 
 resource "aws_security_group" "app_sg" {
   name        = "QuickBite-Application-SG"
@@ -38,13 +39,11 @@ resource "aws_security_group" "app_sg" {
   vpc_id      = aws_vpc.quickbite_vpc.id
 
   ingress {
-    description = "SSH from DevOps Control Node"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    security_groups = [
-      aws_security_group.devops_sg.id
-    ]
+    description     = "SSH from DevOps Control Node"
+    from_port       = 22
+    to_port         = 22
+    protocol        = "tcp"
+    security_groups = [aws_security_group.devops_sg.id]
   }
 
   ingress {
@@ -68,14 +67,19 @@ resource "aws_security_group" "app_sg" {
   }
 }
 
-# ---------------------------------------------------------
-# Database Server Security Group
-# ---------------------------------------------------------
 
 resource "aws_security_group" "db_sg" {
   name        = "QuickBite-Database-SG"
   description = "Security group for MySQL Database Server"
   vpc_id      = aws_vpc.quickbite_vpc.id
+
+  ingress {
+    description     = "SSH from DevOps Control Node"
+    from_port       = 22
+    to_port         = 22
+    protocol        = "tcp"
+    security_groups = [aws_security_group.devops_sg.id]
+  }
 
   ingress {
     description     = "MySQL from Application Server only"

@@ -1,6 +1,6 @@
 services:
   frontend:
-    build: ./app/frontend
+    image: madhumathibganeshappa/quickbite-frontend:${IMAGE_TAG:-latest}
     container_name: quickbite-frontend
     ports:
       - "80:80"
